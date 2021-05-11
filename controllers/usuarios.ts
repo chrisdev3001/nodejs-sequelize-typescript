@@ -3,7 +3,7 @@ import Usuario from "../models/usuario"
 
 
 export const getUsuarios = async(req: Request, res: Response) => {
-    let usuarios = await Usuario.findAll()
+    let usuarios = await Usuario.findAll(/*{where: {estado: true}}*/)
     
     res.json({usuarios})
 }
@@ -18,32 +18,61 @@ export const getUsuario = async(req: Request, res: Response) => {
     res.json(usuario)
 }
 
-export const postUsuario = (req: Request, res: Response) => {
+export const postUsuario = async(req: Request, res: Response) => {
     const { body } = req
+    
+    try {
+        const existeEmail = await Usuario.findOne({
+            where: {
+                email: body.email
+            }
+        })
 
-    console.log(req.body)
+        if(existeEmail){
+            return res.status(400).json('Ya existe usuario con email: '+body.email)
+        }
 
-    res.json({
-        msg: 'postUsuario',
-        body
-    })
+        const usuario = Usuario.build(body)
+        usuario.save()
+
+        res.json({usuario})
+    } catch (error) {
+        res.status(500).json('Error al guardar en db')
+    }
+    
 }
 
-export const putUsuario = (req: Request, res: Response) => {
+export const putUsuario = async(req: Request, res: Response) => {
     const { id } = req.params
     const { body } = req
 
-    res.json({
-        msg: 'putUsuario',
-        body
-    })
+    try {
+        const usuario = await Usuario.findByPk(id)
+
+        if(!usuario) {
+            return res.status(400).json('No existe un usuario con id: '+id)
+        }
+
+        await usuario.update(body)
+        
+        res.json(usuario)
+    } catch (error) {
+        res.status(500).json('Error al guardar en db')
+    }
 }
 
-export const deleteUsuario = (req: Request, res: Response) => {
+export const deleteUsuario = async(req: Request, res: Response) => {
     const { id } = req.params
 
-    res.json({
-        msg: 'deleteUsuario',
-        id
-    })
+    const usuario = await Usuario.findByPk(id)
+
+    if(!usuario) {
+        return res.status(400).json('No existe un usuario con id: '+id)
+    }
+
+    await usuario.update({ estado: false }) //  <--- DELETE LÓGICO
+    // await usuario.destroy()  <--- DELETE FÍSICO
+
+
+    res.json('Usuario borrado')
 }
