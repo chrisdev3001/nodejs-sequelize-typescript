@@ -1,4 +1,5 @@
 import express, { Application } from 'express'
+import cors from 'cors'
 import userRoutes from '../routes/usuario'
 
 export default class Server{
@@ -12,8 +13,20 @@ export default class Server{
         this.app = express()
         this.port = process.env.PORT || '8000'
 
-        // Define routes
+        // Initial methods
+        this.middlewares()
         this.routes()
+    }
+
+    middlewares(){
+        // Configured cors
+        this.app.use(cors())
+
+        // Read body post
+        this.app.use(express.json())
+
+        // Public folder
+        this.app.use(express.static('public'))
     }
 
     routes(){
