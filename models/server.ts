@@ -1,6 +1,7 @@
 import express, { Application } from 'express'
 import cors from 'cors'
 import userRoutes from '../routes/usuario'
+import db from '../db/connection'
 
 export default class Server{
     private app: Application
@@ -14,6 +15,7 @@ export default class Server{
         this.port = process.env.PORT || '8000'
 
         // Initial methods
+        this.dbConnection()
         this.middlewares()
         this.routes()
     }
@@ -37,5 +39,11 @@ export default class Server{
         this.app.listen( this.port, () => {
             console.log(`Servidor corriendo en: http://localhost:${this.port}`)
         })
+    }
+
+    dbConnection(){
+        db.authenticate()
+        .then(()=> console.log('DB Online'))
+        .catch(()=> console.log('DB Offline'))
     }
 }
